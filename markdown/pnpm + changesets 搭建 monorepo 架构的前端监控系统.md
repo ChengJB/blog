@@ -141,7 +141,8 @@ import { pk1 } from '@websee/pk1';
 pkg1 中将 pkg2 作为依赖进行安装，在根目录下执行
 
 ```js
-pnpm install @websee/pk1 --filter @websee/pk2
+pnpm install @websee/pk1 --filter @websee/pk2 //这个不行用下面这个
+pnpm add "@chengjb/pk1@workspace:*" --filter @chengjb/pk2
 ```
 
 此时查看 pkg2 的  `package.json`，可以看到  `dependencies`  字段自动添加了 pk1 的引用，证明相互引用添加成功
@@ -291,6 +292,40 @@ pnpm changeset init
 ```
 
 #### 执行 `pnpm run publish`
+如果想免费公开，需要进行如下配置
+```
+步骤 1：修正作用域包配置
+在 ​每个子包（pk1/pk2）​ 的 package.json 中添加 publishConfig：
+{
+  "name": "@chengjb/pk1",
+  "version": "1.0.1",
+  "publishConfig": {
+    "access": "public",
+    "registry": "https://registry.npmjs.org/"
+  }
+}
+此配置强制声明包为公开，覆盖默认私有设置。
+
+步骤 2：全局配置 .npmrc
+在项目根目录创建 .npmrc 文件并添加：
+# 强制所有作用域包公开
+@chengjb:registry=https://registry.npmjs.org/
+access=public
+此配置确保所有作用域包均以公开模式发布。
+
+步骤 3：验证 npm 账户权限
+​确认账户归属
+npm whoami  # 应返回你的用户名（如 chengjiangbo）
+若包作用域 @chengjb 是组织名，需在 npm 官网创建组织 并加入你的账户；
+若作用域是个人账户，包名应改为 @你的用户名/包名（如 @chengjiangbo/pk1）。
+​验证邮箱
+登录 npm 官网检查账户邮箱是否已验证（未验证邮箱会阻止发布）。
+步骤 4：清理缓存并重试
+# 清理 npm 缓存
+npm cache clean --force
+# 重新发布
+pnpm run publish
+```
 
 发布 1.1.0 版本
 
